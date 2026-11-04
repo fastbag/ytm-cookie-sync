@@ -197,6 +197,21 @@ class HomeAssistant:
         }
         self._call("POST", "states/sensor.ytm_cookie_sync", {"state": d["status"], "attributes": attrs})
 
+    def sensor_missing(self) -> bool:
+        """True if Home Assistant no longer knows the sensor (e.g. after an HA restart)."""
+        if not self.token:
+            return False
+        req = urllib.request.Request("http://supervisor/core/api/states/sensor.ytm_cookie_sync",
+                                     headers={"Authorization": f"Bearer {self.token}"})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                resp.read()
+            return False
+        except urllib.error.HTTPError as err:
+            return err.code == 404
+        except (urllib.error.URLError, OSError):
+            return False  # Home Assistant not reachable right now – try again later
+
     def notify(self, title: str, message: str) -> None:
         stamp = datetime.now(TZ).strftime(self.t("stamp"))
         self._call("POST", "services/persistent_notification/create",
@@ -634,6 +649,7 @@ class Service:
         self.login_ok_since = 0.0
         self.ma_reachable: bool | None = None
         self.next_ma_poll = 0.0
+        self.next_sensor_check = time.time() + 60
 
     # ---- helpers
     def set_status(self, status: str, message: str, notify: str | None = None) -> None:
@@ -867,6 +883,11 @@ class Service:
             elif not up and self.ma_reachable:
                 log.info("Music Assistant unreachable (restarting?)")
             self.ma_reachable = up
+        if time.time() >= self.next_sensor_check:
+            self.next_sensor_check = time.time() + 60
+            if self.ha.sensor_missing():
+                log.info("Sensor missing in Home Assistant (restart?) – publishing it again")
+                self.ha.set_sensor(self.state)
         if not cmd and self.auto_finish and self.browser.login_active():
             complete, fp = Browser.peek_signin()
             if complete and fp != self.login_baseline:

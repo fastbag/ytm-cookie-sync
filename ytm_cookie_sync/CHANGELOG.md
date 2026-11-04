@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1
+- Re-publish `sensor.ytm_cookie_sync` within a minute after a Home Assistant restart (previously it was missing until the next check).
+
 ## 0.3.0
 - First public version.
 - Cookies are read directly from the Chromium profile database (no remote-controlled browser).

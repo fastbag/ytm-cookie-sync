@@ -1,5 +1,5 @@
 name: "YTM Cookie Sync"
-version: "0.3.0"
+version: "0.3.1"
 slug: ytm_cookie_sync
 description: "Keeps a dedicated YouTube Music browser session and renews the Music Assistant YouTube Music cookies when needed."
 url: "https://github.com/fastbag/ytm-cookie-sync"
