@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YTM Login</title>
+<style>
+  body{margin:0;font:14px/1.4 system-ui,sans-serif;background:#111;color:#ddd}
+  header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px;background:#1c1c1c}
+  button{background:#2a6df4;color:#fff;border:0;border-radius:6px;padding:7px 12px;font-size:14px;cursor:pointer}
+  button.sec{background:#444}
+  #st{flex:1 1 300px;min-width:200px}
+  #st b{color:#fff}
+  details{padding:4px 10px;background:#161616}
+  pre{white-space:pre-wrap;margin:4px 0;font-size:12px}
+  iframe{border:0;width:100%;height:calc(100vh - 56px);display:none;background:#000}
+</style>
+</head>
+<body>
+<header>
+  <div id="st">…</div>
+  <button id="b_login" onclick="act('login')"></button>
+  <button id="b_done" class="sec" onclick="act('login_done')"></button>
+  <button id="b_check" class="sec" onclick="act('check')"></button>
+  <button id="b_refresh" class="sec" onclick="if(confirm(L.confirm))act('refresh')"></button>
+</header>
+<details><summary id="s_details"></summary><pre id="det"></pre></details>
+<iframe id="vnc" title="browser"></iframe>
+<script>
+const I18N = {
+  en: {login:'Start sign-in', done:'Sign-in finished', check:'Check now', refresh:'Renew now',
+       details:'Details', browser:'Browser', provider:'Provider', test:'Test mode',
+       confirm:'Read the cookies from the browser now and send them to Music Assistant?',
+       err:'Status unavailable: '},
+  de: {login:'Anmeldung starten', done:'Anmeldung abgeschlossen', check:'Jetzt prüfen', refresh:'Jetzt erneuern',
+       details:'Details', browser:'Browser', provider:'Provider', test:'Testmodus',
+       confirm:'Cookies jetzt aus dem Browser übernehmen und an Music Assistant übertragen?',
+       err:'Status nicht abrufbar: '}
+};
+let L = I18N[(navigator.language || 'en').slice(0, 2)] || I18N.en;
+function labels(){
+  document.getElementById('b_login').textContent = L.login;
+  document.getElementById('b_done').textContent = L.done;
+  document.getElementById('b_check').textContent = L.check;
+  document.getElementById('b_refresh').textContent = L.refresh;
+  document.getElementById('s_details').textContent = L.details;
+}
+labels();
+// ingress base path (…/api/hassio_ingress/<token>/)
+const base = location.pathname.replace(/[^/]*$/, '');
+const vnc = document.getElementById('vnc');
+let shown = false, autoStarted = false;
+async function act(a){ await fetch(base + 'api/' + a, {method:'POST'}); setTimeout(load, 1500); }
+function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+async function load(){
+  try{
+    const s = await (await fetch(base + 'api/status', {cache:'no-store'})).json();
+    if (s.language && I18N[s.language] && L !== I18N[s.language]) { L = I18N[s.language]; labels(); }
+    document.getElementById('st').innerHTML =
+      `<b>${esc(s.status)}</b> · ${esc(s.message)}<br><small>${L.browser}: ${esc(s.browser_session)} · ` +
+      `${L.provider}: ${esc(s.provider_state ?? '–')}${s.dry_run ? ' · <b>' + L.test + '</b>' : ''} · ${esc(s.now)}</small>`;
+    document.getElementById('det').textContent = JSON.stringify(s, null, 1);
+    // sign-in required: start the browser automatically when the panel is opened (once per page load)
+    if (s.status === 'login_required' && !s.login_active && !autoStarted){ autoStarted = true; act('login'); }
+    if (s.login_active && !shown){
+      const p = (base + 'websockify').replace(/^\//, '');
+      vnc.src = base + 'vnc.html?autoconnect=1&resize=remote&reconnect=1&path=' + encodeURIComponent(p);
+      vnc.style.display = 'block'; shown = true;
+    } else if (!s.login_active && shown){
+      vnc.src = 'about:blank'; vnc.style.display = 'none'; shown = false;
+    }
+  }catch(e){ document.getElementById('st').textContent = L.err + e; }
+}
+load(); setInterval(load, 5000);
+</script>
+</body>
+</html>

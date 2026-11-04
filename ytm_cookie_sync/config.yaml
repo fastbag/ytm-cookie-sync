@@ -1,0 +1,51 @@
+name: "YTM Cookie Sync"
+version: "0.3.0"
+slug: ytm_cookie_sync
+description: "Keeps a dedicated YouTube Music browser session and renews the Music Assistant YouTube Music cookies when needed."
+url: "https://github.com/fastbag/ytm-cookie-sync"
+arch:
+  - amd64
+  - aarch64
+init: false
+boot: auto
+startup: application
+stdin: true
+homeassistant_api: true
+ingress: true
+ingress_port: 8099
+ingress_entry: index.html
+panel_icon: mdi:youtube
+panel_title: "YTM Login"
+panel_admin: true
+watchdog: "tcp://[HOST]:8099"
+backup_exclude:
+  - "chromium/Default/Cache/*"
+  - "chromium/Default/Code Cache/*"
+  - "chromium/Default/GPUCache/*"
+  - "chromium/Default/Service Worker/CacheStorage/*"
+options:
+  ma_url: "http://d5369777-music-assistant:8095"
+  ma_token: ""
+  yt_username: ""
+  language: en
+  notify_service: ""
+  check_interval_minutes: 30
+  deep_check_hours: 12
+  max_retries: 3
+  auto_create_provider: false
+  dry_run: true
+  ma_instance_id: ""
+  log_level: info
+schema:
+  ma_url: url
+  ma_token: password
+  yt_username: "str?"
+  language: list(en|de)
+  notify_service: "str?"
+  check_interval_minutes: "int(10,1440)"
+  deep_check_hours: "int(0,168)"
+  max_retries: "int(1,10)"
+  auto_create_provider: bool
+  dry_run: bool
+  ma_instance_id: "str?"
+  log_level: list(debug|info|warning|error)

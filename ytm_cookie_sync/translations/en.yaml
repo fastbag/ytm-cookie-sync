@@ -1,0 +1,37 @@
+configuration:
+  ma_url:
+    name: Music Assistant URL
+    description: Internal address of the Music Assistant server (default works for the official Music Assistant app).
+  ma_token:
+    name: Music Assistant token
+    description: Long-lived access token of a Music Assistant ADMIN user (Music Assistant → Settings → Profile → Long-lived access tokens).
+  yt_username:
+    name: YouTube account
+    description: E-mail address of the Google account (pre-filled on the sign-in page; also sent to Music Assistant as username).
+  language:
+    name: Language
+    description: Language of status messages and notifications.
+  notify_service:
+    name: Notification service
+    description: Optional, e.g. notify.mobile_app_my_phone – receives a message when a new sign-in is needed.
+  check_interval_minutes:
+    name: Check interval (minutes)
+    description: How often the Music Assistant provider status is checked (local only, no Google requests).
+  deep_check_hours:
+    name: Deep check (hours)
+    description: How often one page request verifies that the cookies are still signed in at YouTube. 0 = off.
+  max_retries:
+    name: Max. retries
+    description: Failed renewals before a 6 h pause and a notification.
+  auto_create_provider:
+    name: Create provider automatically
+    description: Create the YouTube Music provider in Music Assistant if none exists.
+  dry_run:
+    name: Test mode
+    description: Check everything but do NOT send cookies to Music Assistant.
+  ma_instance_id:
+    name: Provider instance
+    description: Optional, only needed with more than one YouTube Music provider.
+  log_level:
+    name: Log level
+    description: Logs never contain cookie values or tokens.
